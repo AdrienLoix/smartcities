@@ -1,6 +1,5 @@
 import machine
 import utime
-import micropython
 
 LED = machine.Pin(16,machine.Pin.OUT)
 BTN = machine.Pin(18,machine.Pin.IN)
