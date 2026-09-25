@@ -1,0 +1,49 @@
+import machine
+import utime
+import micropython
+
+LED = machine.Pin(16,machine.Pin.OUT)
+BTN = machine.Pin(18,machine.Pin.IN)
+
+LED.value(0)
+NBR = 0
+lastChange = 0
+
+def isr_bouton(pin):
+    global NBR, lastChange
+    now = utime.ticks_ms()
+    
+    if utime.ticks_diff(now, lastChange) > 500:
+        lastChange = now
+        
+        if pin.value() == 1:
+            NBR = NBR+1
+            if NBR == 7:
+                NBR = 1;
+            print(NBR)
+        
+BTN.irq(trigger=machine.Pin.IRQ_RISING, handler=isr_bouton)
+
+while True:        
+    if NBR == 1 or NBR == 2:
+        timer = 1
+        LED.value(1)
+        utime.sleep(timer)
+        LED.value(0)
+        utime.sleep(timer)
+    
+    if NBR == 3 or NBR == 4:
+        LED.value(1)
+        utime.sleep_ms(80)
+        LED.value(0)
+        utime.sleep_ms(120)
+        
+        LED.value(1)
+        utime.sleep_ms(80)
+        LED.value(0)
+        utime.sleep_ms(600)
+        
+    if NBR == 5 or NBR == 6:
+        LED.value(0)
+
+        
