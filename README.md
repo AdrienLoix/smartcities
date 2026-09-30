@@ -40,3 +40,4 @@ Pour pouvoir utiliser le programme de l'exercice 1, il faut respecter le branche
 2. GPIO 18 : Brancher un bouton poussoir muni d'un pull down.
 <img width="842" height="595" alt="image" src="https://github.com/user-attachments/assets/280d8e86-efc8-49c2-bd44-b3e5fef18fd5" />
 
+Un appuis sur le bouton change la séquence de clignotement de la LED.
