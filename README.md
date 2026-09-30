@@ -34,5 +34,9 @@ Ce dépôt contient le code et les exercices réalisés dans le cadre du cours d
 4. Sélectionnez le port série associé à la carte (ou laissez sur détection automatique).
 5. Cliquez sur **OK**. La console en bas doit afficher l'invite `>>>`.
 
+## Exercice 1
+Pour pouvoir utiliser le programme de l'exercice 1, il faut respecter le branchement suivant :
+PIN 16 : Brancher une led ainsi qu'une résistance d'environ 300ohm (selon la couleur de la led utilisé) en série vers le GND.
+PIN 18 : Brancher un bouton poussoir muni d'un pull down.
 <img width="842" height="595" alt="image" src="https://github.com/user-attachments/assets/280d8e86-efc8-49c2-bd44-b3e5fef18fd5" />
 
