@@ -10,7 +10,7 @@ Ce dépôt contient le code et les exercices réalisés dans le cadre du cours d
 
 - Une carte **Raspberry Pi Pico W** (v1)
 - Un câble Micro-USB (assurez-vous qu'il gère les données et pas uniquement la charge)
-- Une breadboard et les composants requis selon les exercices
+- Les composants requis selon les exercices
 
 ## Logiciels requis
 
