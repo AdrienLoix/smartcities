@@ -36,7 +36,7 @@ Ce dépôt contient le code et les exercices réalisés dans le cadre du cours d
 
 ## Exercice 1
 Pour pouvoir utiliser le programme de l'exercice 1, il faut respecter le branchement suivant :
-PIN 16 : Brancher une led ainsi qu'une résistance d'environ 300ohm (selon la couleur de la led utilisé) en série vers le GND.
-PIN 18 : Brancher un bouton poussoir muni d'un pull down.
+1. PIN 16 : Brancher une led ainsi qu'une résistance d'environ 300ohm (selon la couleur de la led utilisé) en série vers le GND.
+2. PIN 18 : Brancher un bouton poussoir muni d'un pull down.
 <img width="842" height="595" alt="image" src="https://github.com/user-attachments/assets/280d8e86-efc8-49c2-bd44-b3e5fef18fd5" />
 
