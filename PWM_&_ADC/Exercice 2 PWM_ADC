@@ -4,14 +4,16 @@ from machine import ADC
 from machine import Pin, PWM, Timer
 from utime import sleep
 
-Valeur = ADC(2)
-PWMSound = PWM(Pin(27))
-BTN = machine.Pin(16,machine.Pin.IN)
-LED = machine.Pin(18,machine.Pin.OUT)
-timer_adc = Timer()
-NBR = 0
-lastChange = 0
+# Configuration des E/S et des peripheriques
+Valeur = ADC(2)                             # Potentiometre / capteur sur ADC2
+PWMSound = PWM(Pin(27))                     # Buzzer sur GP27 (PWM)
+BTN = machine.Pin(16,machine.Pin.IN)        # Bouton poussoir sur GP16
+LED = machine.Pin(18,machine.Pin.OUT)       # LED d'indication sur GP18
+timer_adc = Timer()                         # Timer pour la lecture ADC
+NBR = 0                                     # Selection du morceau (0 = Mario, 1 = Zelda)
+lastChange = 0                              # Anti-rebond du bouton
 
+# Partition Mario : (frequence Hz, duree ms)
 MARIO = [
     (659, 150), (659, 150), (0, 150), (659, 150), (0, 150), (523, 150), (659, 150), (0, 150),
     (784, 300), (0, 300), (392, 300), (0, 300), (523, 300), (0, 150), (392, 300), (0, 150),
@@ -25,6 +27,7 @@ MARIO = [
     (740, 150), (698, 150), (622, 300), (659, 300), (0, 150), (1047, 300), (1047, 150), (1047, 300), (0, 300)
 ]
 
+# Partition Zelda : (frequence Hz, duree ms)
 ZELDA = [
     (466, 400), (349, 400), (0, 100), (466, 150), (466, 100), (523, 100), (587, 100), (622, 100),
     (698, 600), (0, 200), (698, 400), (0, 100), (698, 150), (740, 150), (831, 150), (932, 600),
@@ -34,17 +37,21 @@ ZELDA = [
     (698, 300), (698, 150), (698, 150), (784, 150), (880, 600), (0, 300)
 ]
 
+# Lecture de la valeur ADC et reglage du volume / rapport cyclique
 def Mesurer():
     Mesure = int(Valeur.read_u16()/30)
     PWMSound.duty_u16(Mesure)
     
+# Function callback pour le timer
 def callback_adc(t):
     Mesurer()
 
+# Interruption du bouton avec gestion de l'anti-rebond
 def isr_bouton(pin):
     global NBR, lastChange
     now = utime.ticks_ms()
     
+    # Verification anti-rebond (500 ms)
     if utime.ticks_diff(now, lastChange) > 500:
         lastChange = now
         
@@ -54,29 +61,36 @@ def isr_bouton(pin):
                 NBR = 0;
             print(NBR)
 
+# Fonction pour jouer une melodie
 def play(MUSIC):
     taille = len(MUSIC)
     current_song = NBR
     for i in range(taille):
+        # Permet de couper le morceau si le bouton est appuye
         if NBR != current_song:
             break
         
         sound = MUSIC[i][0] 
         sleep = MUSIC[i][1]
         
+        # Pause ou note
         if sound == 0:
-            PWMSound.duty_u16(0)
+            PWMSound.duty_u16(0)            # Silence
             LED.value(0)
         else:
-            PWMSound.freq(sound)
-            LED.value(1)
+            PWMSound.freq(sound)            # Ajuste la frequence de la note
+            LED.value(1)                    # Allume la LED sur la note
             
         utime.sleep_ms(sleep)
         LED.value(0)
 
+# Initialisation du timer (echantillonnage ADC a 100 Hz)
 timer_adc.init(freq=100, mode=Timer.PERIODIC, callback=callback_adc)
+
+# Interruption sur front montant du bouton
 BTN.irq(trigger=machine.Pin.IRQ_RISING, handler=isr_bouton)
     
+# Boucle principale : alterne entre les musiques selon la valeur de NBR
 while True:
     if NBR == 0:
         play(MARIO)
