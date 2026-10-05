@@ -41,3 +41,15 @@ Pour pouvoir utiliser le programme de l'exercice 1, il faut respecter le branche
 <img width="842" height="595" alt="image" src="https://github.com/user-attachments/assets/280d8e86-efc8-49c2-bd44-b3e5fef18fd5" />
 
 Un appuis sur le bouton change la séquence de clignotement de la LED.
+
+## Exercice 2
+Pour pouvoir utiliser le programme de l'exercice 2, il faut respecter le branchement suivant :
+1. GPIO 16 : Brancher un bouton poussoir muni d'un pull down.
+2. GPIO 18 : Brancher une led ainsi qu'une résistance d'environ 300ohm (selon la couleur de la led utilisé) en série vers le GND.
+3. GPIO 27 : Brancher un buzzer passif vers le GND pour générer le son.
+4. GPIO 28 (ADC 2) : Brancher la broche curseur d'un potentiomètre. Les deux autres broches du potentiomètre doivent être reliées au 3.3V et au GND.
+<img width="842" height="595" alt="image" src="https://github.com/user-attachments/assets/280d8e86-efc8-49c2-bd44-b3e5fef18fd5" />
+
+Contrôle de la piste audio : Une simple pression sur le bouton permet de basculer entre le thème de Mario et celui de Zelda. Cette action est gérée par une interruption matérielle (IRQ sur front montant) couplée à un anti-rebond logiciel de 500 ms pour éviter les doubles déclenchements.
+Indicateur visuel : La LED de la broche 18 s'allume en rythme avec la musique, s'activant lorsqu'une note est jouée et s'éteignant pendant les silences ou entre les notes.
+Ajustement en temps réel : Un Timer matériel s'exécute en tâche de fond 100 fois par seconde pour lire la valeur analogique du potentiomètre. Cette valeur est convertie et appliquée au rapport cyclique (duty_u16) du signal PWM du buzzer, agissant ainsi comme un contrôleur de volume dynamique.
