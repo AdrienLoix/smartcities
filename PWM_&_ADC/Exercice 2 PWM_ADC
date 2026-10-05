@@ -1,0 +1,84 @@
+import machine
+import utime
+from machine import ADC
+from machine import Pin, PWM, Timer
+from utime import sleep
+
+Valeur = ADC(2)
+PWMSound = PWM(Pin(27))
+BTN = machine.Pin(16,machine.Pin.IN)
+LED = machine.Pin(18,machine.Pin.OUT)
+timer_adc = Timer()
+NBR = 0
+lastChange = 0
+
+MARIO = [
+    (659, 150), (659, 150), (0, 150), (659, 150), (0, 150), (523, 150), (659, 150), (0, 150),
+    (784, 300), (0, 300), (392, 300), (0, 300), (523, 300), (0, 150), (392, 300), (0, 150),
+    (330, 300), (0, 150), (440, 200), (494, 200), (466, 150), (440, 300), (392, 200), (659, 200),
+    (784, 200), (880, 300), (698, 150), (784, 150), (0, 150), (659, 300), (523, 150), (587, 150),
+    (494, 300), (0, 300), (523, 300), (0, 150), (392, 300), (0, 150), (330, 300), (0, 150),
+    (440, 200), (494, 200), (466, 150), (440, 300), (392, 200), (659, 200), (784, 200), (880, 300),
+    (698, 150), (784, 150), (0, 150), (659, 300), (523, 150), (587, 150), (494, 300), (0, 300),
+    (0, 150), (784, 150), (740, 150), (698, 150), (622, 300), (659, 300), (0, 150), (415, 150),
+    (440, 150), (523, 150), (0, 150), (440, 150), (523, 150), (587, 150), (0, 150), (784, 150),
+    (740, 150), (698, 150), (622, 300), (659, 300), (0, 150), (1047, 300), (1047, 150), (1047, 300), (0, 300)
+]
+
+ZELDA = [
+    (466, 400), (349, 400), (0, 100), (466, 150), (466, 100), (523, 100), (587, 100), (622, 100),
+    (698, 600), (0, 200), (698, 400), (0, 100), (698, 150), (740, 150), (831, 150), (932, 600),
+    (0, 150), (932, 200), (932, 150), (831, 150), (740, 150), (831, 300), (740, 150), (698, 600),
+    (0, 200), (698, 300), (622, 150), (622, 150), (698, 150), (740, 600), (698, 300), (622, 150),
+    (554, 150), (622, 150), (698, 600), (622, 300), (554, 150), (466, 150), (523, 150), (587, 600),
+    (698, 300), (698, 150), (698, 150), (784, 150), (880, 600), (0, 300)
+]
+
+def Mesurer():
+    Mesure = int(Valeur.read_u16()/30)
+    PWMSound.duty_u16(Mesure)
+    
+def callback_adc(t):
+    Mesurer()
+
+def isr_bouton(pin):
+    global NBR, lastChange
+    now = utime.ticks_ms()
+    
+    if utime.ticks_diff(now, lastChange) > 500:
+        lastChange = now
+        
+        if pin.value() == 1:
+            NBR = NBR+1
+            if NBR == 2:
+                NBR = 0;
+            print(NBR)
+
+def play(MUSIC):
+    taille = len(MUSIC)
+    current_song = NBR
+    for i in range(taille):
+        if NBR != current_song:
+            break
+        
+        sound = MUSIC[i][0] 
+        sleep = MUSIC[i][1]
+        
+        if sound == 0:
+            PWMSound.duty_u16(0)
+            LED.value(0)
+        else:
+            PWMSound.freq(sound)
+            LED.value(1)
+            
+        utime.sleep_ms(sleep)
+        LED.value(0)
+
+timer_adc.init(freq=100, mode=Timer.PERIODIC, callback=callback_adc)
+BTN.irq(trigger=machine.Pin.IRQ_RISING, handler=isr_bouton)
+    
+while True:
+    if NBR == 0:
+        play(MARIO)
+    if NBR == 1:
+        play(ZELDA)
