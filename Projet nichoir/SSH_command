@@ -1,0 +1,16 @@
+Connexion au RPI en SSH
+
+Ouvrir terminal sur windows, et écrire ceci :
+
+(connexion SSH)
+ssh sam@192.168.2.108
+azerty123
+
+(connection MQTT)
+sudo systemctl start mosquitto
+mosquitto_sub -h localhost -t "testAdriSam" -v
+
+
+Commandes utiles :
+sudo poweroff
+sudo reboot 
