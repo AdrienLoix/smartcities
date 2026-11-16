@@ -1,0 +1,70 @@
+import utime
+from utime import sleep
+import machine
+from machine import ADC
+import neopixel
+
+BLACK = (0,0,0)
+RED = (5,0,0)
+YELLOW = (5,3,0)
+CYAN = (0,5,5)
+BLUE = (0,0,5)
+PURPLE = (4,0,5)
+WHITE = (5,5,5)
+
+COLORS = (BLACK,RED,YELLOW,CYAN,BLUE,PURPLE,WHITE)
+
+pinoutLed = machine.Pin(18,machine.Pin.OUT)
+microphone = ADC(2)
+
+nbrcolor = 0
+nbrBPM = 0
+nbrMoyBPM = 0
+lastBPM = 0
+timer_BPM_dernier = utime.ticks_ms()
+timer_BPM_moyen_dernier = utime.ticks_ms()
+timer_actuel = utime.ticks_ms()
+timer_dernier = utime.ticks_ms()
+seuil = const(38*256)
+cooldown_MS = const(200)
+
+ledrgb = neopixel.NeoPixel(pinoutLed, 1)
+ADCRead = microphone.read_u16
+
+for color in COLORS:
+        ledrgb[0] = color
+        ledrgb.write()
+        utime.sleep(0.1)
+
+while True:
+    average = 0
+    for i in range (25):
+        echantillon = ADCRead()
+        average += echantillon
+    average = (average/25)
+    
+    if average > seuil:
+     timer_actuel = utime.ticks_ms()
+     if timer_dernier + cooldown_MS < timer_actuel:
+        timer_dernier = utime.ticks_ms()
+        #print(average/256)
+        nbrBPM += 1
+        nbrcolor += 1
+        ledrgb[0] = COLORS[nbrcolor]
+        ledrgb.write()
+        if nbrcolor == 6:
+            nbrcolor = 0
+        if timer_actuel > 10000 + timer_BPM_dernier:
+            timer_BPM_dernier = utime.ticks_ms()
+            print("Nombre de BPM : ", nbrBPM*6)
+            nbrMoyBPM = ((nbrBPM*6) + lastBPM)/2
+            lastBPM = nbrBPM*6
+            nbrBPM = 0
+        if timer_actuel > 60000 + timer_BPM_moyen_dernier:
+            timer_BPM_moyen_dernier = utime.ticks_ms()
+            print("BPM moyen : ", nbrMoyBPM)
+            with open("logs.txt", "a") as fichier:
+                fichier.write(f"BPM moyen {nbrMoyBPM} avec un temps de fonctionnement de {timer_actuel//1000}s\n")
+                print(open("logs.txt").read())
+
+    
