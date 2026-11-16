@@ -1,0 +1,94 @@
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include "M5TimerCAM.h"
+
+// 1. Configuration Wi-Fi
+const char* ssid = "electroProjectWifi";
+const char* password = "B1MesureEnv";
+
+// 2. Configuration MQTT
+const char* mqtt_server = "192.168.2.108";  // L'adresse de ton Raspberry Pi
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void setup() {
+  Serial.begin(115200);
+
+  client.setBufferSize(65535);
+
+  client.setSocketTimeout(30);
+  client.setKeepAlive(30);
+
+  TimerCAM.begin();
+  TimerCAM.Camera.begin();
+
+  TimerCAM.Camera.sensor->set_pixformat(TimerCAM.Camera.sensor, PIXFORMAT_JPEG);
+  TimerCAM.Camera.sensor->set_framesize(TimerCAM.Camera.sensor, FRAMESIZE_VGA);  //FRAMESIZE_QXGA
+
+  TimerCAM.Camera.sensor->set_vflip(TimerCAM.Camera.sensor, 1);
+  TimerCAM.Camera.sensor->set_hmirror(TimerCAM.Camera.sensor, 0);
+
+  // Connexion au Wi-Fi
+  Serial.print("Connexion à ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(10);
+    Serial.print(".");
+  }
+  Serial.print("\nWiFi connecté. IP de l'ESP32 : ");
+  Serial.println(WiFi.localIP());  // L'ESP32 aura une IP différente du RPi
+
+  // Ciblage du broker MQTT sur le port par défaut 1883
+  client.setServer(mqtt_server, 1883);
+}
+
+void reconnect() {
+  // Boucle jusqu'à l'établissement de la connexion MQTT
+  while (!client.connected()) {
+    Serial.print("Tentative de connexion MQTT...");
+    // Création d'un ID client unique pour Mosquitto
+    String clientId = "ESP32Client-" + String(random(0, 1000));
+
+    if (client.connect(clientId.c_str())) {
+      Serial.println("Connecté au broker !");
+      //client.publish("testAdriSam", "ESP32 connecté");
+    } else {
+      Serial.print("Échec, erreur = ");
+      Serial.print(client.state());
+      Serial.println(" - nouvelle tentative bientôt...");
+      delay(5000);
+    }
+  }
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+  Serial.println("Photo ?");
+
+  if (TimerCAM.Camera.get()) {
+    Serial.printf("Image capturée avec succès !\n");
+    int A = TimerCAM.Camera.fb->width;
+    int B = TimerCAM.Camera.fb->height;
+    size_t C = TimerCAM.Camera.fb->len;
+    uint8_t* D = TimerCAM.Camera.fb->buf;
+    
+    Serial.printf("Dimensions : %d x %d\n", A, B);
+    Serial.printf("Taille de l'image (C) : %zu octets\n", C);
+    Serial.printf("Adresse mémoire (D) : %p\n", (void*)D);
+   bool succes = client.publish("testAdriSam", D, C);
+    if (succes) {
+      Serial.println("-> Publication MQTT réussie !");
+    } else {
+      Serial.println("-> ÉCHEC de la publication MQTT. (Taille image > buffer ?)");
+    }
+
+    TimerCAM.Camera.free();
+  }
+  delay(5000);
+}
