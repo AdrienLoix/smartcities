@@ -4,6 +4,7 @@ from machine import ADC
 from machine import Pin, PWM, Timer
 from utime import sleep
 
+# Configuration des broches (ADC, buzzer PWM, bouton, LED) et variables d'état
 Valeur = ADC(2)
 PWMSound = PWM(Pin(27))
 BTN = machine.Pin(16,machine.Pin.IN)
@@ -12,6 +13,7 @@ timer_adc = Timer()
 NBR = 0
 lastChange = 0
 
+# Partitions des mélodies : liste de tuples (fréquence en Hz, durée en ms)
 MARIO = [
     (659, 150), (659, 150), (0, 150), (659, 150), (0, 150), (523, 150), (659, 150), (0, 150),
     (784, 300), (0, 300), (392, 300), (0, 300), (523, 300), (0, 150), (392, 300), (0, 150),
@@ -34,13 +36,16 @@ ZELDA = [
     (698, 300), (698, 150), (698, 150), (784, 150), (880, 600), (0, 300)
 ]
 
+# Lecture de l'ADC pour ajuster le rapport cyclique (volume) du PWM
 def Mesurer():
     Mesure = int(Valeur.read_u16()/30)
     PWMSound.duty_u16(Mesure)
     
+# Fonction appelée périodiquement par le timer ADC
 def callback_adc(t):
     Mesurer()
 
+# Interruption bouton : change de musique (0 ou 1) avec anti-rebond de 500 ms
 def isr_bouton(pin):
     global NBR, lastChange
     now = utime.ticks_ms()
@@ -54,6 +59,7 @@ def isr_bouton(pin):
                 NBR = 0;
             print(NBR)
 
+# Lecture note par note d'une partition avec synchro LED et arrêt si changement de mode
 def play(MUSIC):
     taille = len(MUSIC)
     current_song = NBR
@@ -74,12 +80,13 @@ def play(MUSIC):
         utime.sleep_ms(sleep)
         LED.value(0)
 
+# Initialisation du timer (100 Hz) et de l'interruption bouton
 timer_adc.init(freq=100, mode=Timer.PERIODIC, callback=callback_adc)
 BTN.irq(trigger=machine.Pin.IRQ_RISING, handler=isr_bouton)
     
+# Boucle principale de sélection de la mélodie
 while True:
     if NBR == 0:
         play(MARIO)
     if NBR == 1:
         play(ZELDA)
-
