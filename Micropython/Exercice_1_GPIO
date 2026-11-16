@@ -1,29 +1,37 @@
 import machine
 import utime
 
+# Configuration des broches (LED en sortie, bouton en entrée)
 LED = machine.Pin(16,machine.Pin.OUT)
 BTN = machine.Pin(18,machine.Pin.IN)
 
+# Initialisation des variables d'état
 LED.value(0)
 NBR = 0
 lastChange = 0
 
+# Interruption déclenchée lors de l'appui sur le bouton
 def isr_bouton(pin):
     global NBR, lastChange
     now = utime.ticks_ms()
     
+    # Anti-rebond logiciel (500 ms)
     if utime.ticks_diff(now, lastChange) > 500:
         lastChange = now
         
+        # Incrémentation du mode (boucle de 1 à 6)
         if pin.value() == 1:
             NBR = NBR+1
             if NBR == 7:
                 NBR = 1;
             print(NBR)
         
+# Attachement de l'interruption sur front montant du bouton
 BTN.irq(trigger=machine.Pin.IRQ_RISING, handler=isr_bouton)
 
+# Boucle principale gérant l'affichage selon le mode actif
 while True:        
+    # Modes 1 et 2 : clignotement lent (1 seconde)
     if NBR == 1 or NBR == 2:
         timer = 1
         LED.value(1)
@@ -31,6 +39,7 @@ while True:
         LED.value(0)
         utime.sleep(timer)
     
+    # Modes 3 et 4 : double flash rapide
     if NBR == 3 or NBR == 4:
         LED.value(1)
         utime.sleep_ms(80)
@@ -42,7 +51,6 @@ while True:
         LED.value(0)
         utime.sleep_ms(600)
         
+    # Modes 5 et 6 : LED éteinte
     if NBR == 5 or NBR == 6:
         LED.value(0)
-
-        
