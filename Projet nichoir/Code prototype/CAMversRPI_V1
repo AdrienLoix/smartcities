@@ -7,7 +7,7 @@ const char* ssid = "electroProjectWifi";
 const char* password = "B1MesureEnv";
 
 // 2. Configuration MQTT
-const char* mqtt_server = "192.168.2.108";  // L'adresse de ton Raspberry Pi
+const char* mqtt_server = "192.168.2.108";  // L'adresse du Raspberry Pi
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -38,10 +38,11 @@ void setup() {
     delay(10);
     Serial.print(".");
   }
-  Serial.print("\nWiFi connecté. IP de l'ESP32 : ");
-  Serial.println(WiFi.localIP());  // L'ESP32 aura une IP différente du RPi
 
-  // Ciblage du broker MQTT sur le port par défaut 1883
+  Serial.print("\nWiFi connecté. IP de l'ESP32 : ");
+  Serial.println(WiFi.localIP());
+
+  //MQTT sur le port par défaut 1883
   client.setServer(mqtt_server, 1883);
 }
 
@@ -69,7 +70,7 @@ void loop() {
     reconnect();
   }
   client.loop();
-  Serial.println("Photo ?");
+  Serial.println("Photo !");
 
   if (TimerCAM.Camera.get()) {
     Serial.printf("Image capturée avec succès !\n");
@@ -85,7 +86,7 @@ void loop() {
     if (succes) {
       Serial.println("-> Publication MQTT réussie !");
     } else {
-      Serial.println("-> ÉCHEC de la publication MQTT. (Taille image > buffer ?)");
+      Serial.println("-> ÉCHEC de la publication MQTT");
     }
 
     TimerCAM.Camera.free();
